@@ -14,6 +14,7 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
+    exclude: ['https-proxy-agent', 'agent-base'],
     esbuildOptions: {
       define: {
         global: 'globalThis'
