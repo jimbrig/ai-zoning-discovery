@@ -1,10 +1,23 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  optimizeDeps: {
-    exclude: ['lucide-react'],
+  resolve: {
+    alias: {
+      'node:events': 'events',
+      'node:http': 'stream-http',
+      'node:https': 'https-browserify',
+      'node:stream': 'stream-browserify',
+      'node:buffer': 'buffer',
+      'node:util': 'util'
+    }
   },
+  optimizeDeps: {
+    esbuildOptions: {
+      define: {
+        global: 'globalThis'
+      }
+    }
+  }
 });
