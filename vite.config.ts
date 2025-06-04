@@ -10,7 +10,9 @@ export default defineConfig({
       'node:https': 'https-browserify',
       'node:stream': 'stream-browserify',
       'node:buffer': 'buffer',
-      'node:util': 'util'
+      'node:util': 'util',
+      'https-proxy-agent': 'virtual:empty-module',
+      'agent-base': 'virtual:empty-module'
     }
   },
   optimizeDeps: {
