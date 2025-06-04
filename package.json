@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@tavily/js": "^0.2.2",
+    "@tavily/core": "^0.5.4",
     "buffer": "^6.0.3",
     "events": "^3.3.0",
     "https-browserify": "^1.0.0",
