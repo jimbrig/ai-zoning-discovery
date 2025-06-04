@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Search, X, Loader2 } from 'lucide-react';
+import { Search, X, Loader2, AlertTriangle } from 'lucide-react';
 import { SearchParams, SearchStatus } from '../../types';
 import { useAppContext } from '../../context/AppContext';
 import { statesList } from '../../data/providers';
 
 const SearchForm: React.FC = () => {
-  const { startSearch, searchStatus, clearResults } = useAppContext();
+  const { startSearch, searchStatus, clearResults, hasConfiguredProviders } = useAppContext();
   const [state, setState] = useState<string>('');
   const [county, setCounty] = useState<string>('');
   const [stateError, setStateError] = useState<string>('');
@@ -33,7 +33,6 @@ const SearchForm: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate inputs
     let hasError = false;
     
     if (!state.trim()) {
@@ -73,6 +72,20 @@ const SearchForm: React.FC = () => {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
       <h2 className="text-xl font-semibold text-gray-800 mb-4">Find Zoning District URLs</h2>
+      
+      {!hasConfiguredProviders && (
+        <div className="mb-6 bg-warning-50 border-l-4 border-warning-500 p-4 rounded-md">
+          <div className="flex">
+            <AlertTriangle className="h-6 w-6 text-warning-500 mr-3" />
+            <div>
+              <h3 className="text-warning-700 font-medium">No AI Providers Configured</h3>
+              <p className="text-warning-600 mt-1">
+                You are currently viewing demo data. To see real results, please configure at least one AI provider in the Settings page.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="relative">

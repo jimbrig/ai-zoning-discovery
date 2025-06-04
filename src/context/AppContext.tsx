@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { AIProvider, SearchHistory, SearchResult, SearchParams, SearchStatus } from '../types';
 import { defaultProviders } from '../data/providers';
 import { searchWithProviders } from '../utils/search';
+import { mockResults } from '../data/mockData';
 
 interface AppContextType {
   providers: AIProvider[];
@@ -13,6 +14,7 @@ interface AppContextType {
   startSearch: (params: SearchParams) => Promise<void>;
   saveResult: (result: SearchResult) => void;
   clearResults: () => void;
+  hasConfiguredProviders: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -30,9 +32,17 @@ interface AppProviderProps {
 }
 
 export const AppProvider = ({ children }: AppProviderProps) => {
+  // Load providers with environment variables if available
   const [providers, setProviders] = useState<AIProvider[]>(() => {
     const savedProviders = localStorage.getItem('aiProviders');
-    return savedProviders ? JSON.parse(savedProviders) : defaultProviders;
+    const initialProviders = savedProviders ? JSON.parse(savedProviders) : defaultProviders;
+    
+    // Load API keys from environment variables
+    return initialProviders.map(provider => ({
+      ...provider,
+      apiKey: import.meta.env[`VITE_${provider.id.toUpperCase()}_API_KEY`] || provider.apiKey,
+      enabled: Boolean(import.meta.env[`VITE_${provider.id.toUpperCase()}_API_KEY`]) || provider.enabled
+    }));
   });
   
   const [searchHistory, setSearchHistory] = useState<SearchHistory[]>(() => {
@@ -43,6 +53,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   const [currentSearch, setCurrentSearch] = useState<SearchParams | null>(null);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searchStatus, setSearchStatus] = useState<SearchStatus>(SearchStatus.IDLE);
+  
+  const hasConfiguredProviders = providers.some(p => p.enabled && p.apiKey);
 
   useEffect(() => {
     localStorage.setItem('aiProviders', JSON.stringify(providers));
@@ -68,7 +80,19 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       const enabledProviders = providers.filter(p => p.enabled && p.apiKey);
       
       if (enabledProviders.length === 0) {
-        throw new Error('No AI providers configured. Please add API keys in Settings.');
+        // Use mock data when no providers are configured
+        setSearchResults(mockResults);
+        
+        const historyEntry: SearchHistory = {
+          id: crypto.randomUUID(),
+          state: params.state,
+          county: params.county,
+          timestamp: new Date().toISOString(),
+          results: mockResults
+        };
+        setSearchHistory(prev => [historyEntry, ...prev]);
+        setSearchStatus(SearchStatus.SUCCESS);
+        return;
       }
 
       const results = await searchWithProviders(enabledProviders, params.state, params.county);
@@ -137,7 +161,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         searchStatus,
         startSearch,
         saveResult,
-        clearResults
+        clearResults,
+        hasConfiguredProviders
       }}
     >
       {children}
