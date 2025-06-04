@@ -10,7 +10,10 @@ export async function searchWithOpenAI(
   county: string
 ): Promise<SearchResponse> {
   try {
-    const openai = new OpenAI({ apiKey });
+    const openai = new OpenAI({ 
+      apiKey,
+      dangerouslyAllowBrowser: true // Added flag to allow browser usage
+    });
     const prompt = searchPrompts.openai(state, county);
     
     const response = await openai.chat.completions.create({
