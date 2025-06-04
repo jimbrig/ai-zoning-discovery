@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { tavily } from '@tavily/core';
+import { createClient } from 'tavily-js';
 import { AIProvider, SearchHistory, SearchResult, SearchParams, SearchStatus } from '../types';
 import { defaultProviders } from '../data/providers';
 
@@ -71,7 +71,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         throw new Error('Tavily API key not configured. Please add your API key in Settings.');
       }
 
-      const client = tavily({ apiKey: tavilyProvider.apiKey });
+      const client = createClient(tavilyProvider.apiKey);
       
       // Construct a search query that targets ArcGIS zoning district URLs
       const searchQuery = `${params.county} County, ${params.state} ArcGIS zoning districts feature server URL site:*.gov OR site:*.com`;
