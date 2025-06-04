@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AIProvider, SearchHistory, SearchResult, SearchParams, SearchStatus } from '../types';
 import { defaultProviders } from '../data/providers';
+import { searchWithProviders } from '../utils/search';
 
 interface AppContextType {
   providers: AIProvider[];
@@ -64,43 +65,34 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     setSearchStatus(SearchStatus.SEARCHING);
     
     try {
-      // In a real implementation, this would call out to the AI services
-      // For now, we'll simulate a response after a delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const enabledProviders = providers.filter(p => p.enabled && p.apiKey);
       
-      // Mock result based on the example from the prompt
-      if (params.state.toLowerCase() === 'georgia' && params.county.toLowerCase() === 'forsyth') {
-        const mockResult: SearchResult = {
-          id: Date.now().toString(),
-          url: 'https://geo.forsythco.com/gisworkflow/rest/services/Public/Zoning_Districts/FeatureServer',
-          title: 'Forsyth County GIS - Zoning Districts',
-          description: 'Official zoning districts feature server for Forsyth County, Georgia',
-          provider: 'mock',
-          confidence: 0.95,
-          timestamp: new Date().toISOString(),
-          validated: true
-        };
-        setSearchResults([mockResult]);
+      if (enabledProviders.length === 0) {
+        throw new Error('No AI providers configured. Please add API keys in Settings.');
+      }
+
+      const results = await searchWithProviders(enabledProviders, params.state, params.county);
+      
+      if (results.length > 0) {
+        setSearchResults(results);
         
-        // Add to search history
         const historyEntry: SearchHistory = {
-          id: Date.now().toString(),
+          id: crypto.randomUUID(),
           state: params.state,
           county: params.county,
           timestamp: new Date().toISOString(),
-          results: [mockResult]
+          results: results
         };
         setSearchHistory(prev => [historyEntry, ...prev]);
-        
-        setSearchStatus(SearchStatus.SUCCESS);
       } else {
-        // Simulate no results found
         setSearchResults([]);
-        setSearchStatus(SearchStatus.SUCCESS);
       }
+      
+      setSearchStatus(SearchStatus.SUCCESS);
     } catch (error) {
       console.error('Search error:', error);
       setSearchStatus(SearchStatus.ERROR);
+      setSearchResults([]);
     }
   };
 
@@ -112,7 +104,6 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         prev.map(r => r.id === result.id ? result : r)
       );
       
-      // Update in history as well
       setSearchHistory(prev => 
         prev.map(h => {
           const resultIndex = h.results.findIndex(r => r.id === result.id);

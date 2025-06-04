@@ -39,3 +39,13 @@ export enum SearchStatus {
   SUCCESS = 'success',
   ERROR = 'error'
 }
+
+export interface PromptTemplate {
+  system: string;
+  user: string;
+}
+
+export interface SearchResponse {
+  results: SearchResult[];
+  error?: string;
+}
