@@ -2,44 +2,44 @@ import { AIProvider } from '../types';
 
 export const defaultProviders: AIProvider[] = [
   {
-    id: 'tavily',
-    name: 'Tavily',
-    description: 'Specialized search engine API for retrieving accurate and relevant information.',
+    id: 'openai',
+    name: 'OpenAI',
+    description: 'Advanced AI models for various tasks, including text generation and understanding.',
     apiKeyRequired: true,
     enabled: true
   },
   {
-    id: 'exa',
-    name: 'Exa',
-    description: 'Semantic search API with improved understanding of queries and context.',
+    id: 'anthropic',
+    name: 'Anthropic',
+    description: 'AI models focused on helpful, harmless, and honest responses.',
     apiKeyRequired: true,
     enabled: false
   },
   {
-    id: 'firecrawl',
-    name: 'Firecrawl',
-    description: 'Advanced web crawler for finding specialized information across the web.',
+    id: 'google-gemini',
+    name: 'Google Gemini',
+    description: 'Google\'s multimodal AI model for understanding and generating content across text, images, and code.',
     apiKeyRequired: true,
     enabled: false
   },
   {
-    id: 'googlecse',
-    name: 'Google Custom Search',
-    description: 'Programmable search engine by Google that provides targeted results.',
+    id: 'jina-ai',
+    name: 'Jina AI',
+    description: 'Suite of AI products for search, prompt optimization, and content generation.',
     apiKeyRequired: true,
     enabled: false
   },
   {
-    id: 'serpapi',
-    name: 'SerpAPI',
-    description: 'Real-time API to access search engine results for comprehensive data retrieval.',
+    id: 'serper-api',
+    name: 'Serper API',
+    description: 'Real-time API to access search engine results from Google.',
     apiKeyRequired: true,
     enabled: false
   },
   {
-    id: 'openai',
-    name: 'OpenAI',
-    description: 'AI models that can help process and understand complex geographic data.',
+    id: 'custom-search',
+    name: 'Custom Search Engine',
+    description: 'A custom-built search engine for specialized data retrieval.',
     apiKeyRequired: true,
     enabled: false
   }
