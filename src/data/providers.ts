@@ -6,7 +6,7 @@ export const defaultProviders: AIProvider[] = [
     name: 'OpenAI',
     description: 'Advanced AI models for various tasks, including text generation and understanding.',
     apiKeyRequired: true,
-    enabled: true
+    enabled: false
   },
   {
     id: 'anthropic',
