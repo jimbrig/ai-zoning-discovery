@@ -17,7 +17,7 @@ export async function searchWithOpenAI(
     const prompt = searchPrompts.openai(state, county);
     
     const response = await openai.chat.completions.create({
-      model: 'gpt-4',
+      model: 'gpt-4-turbo-preview',
       messages: [
         { role: 'system', content: prompt.system },
         { role: 'user', content: prompt.user }
