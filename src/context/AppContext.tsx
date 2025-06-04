@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createClient } from 'tavily-js';
 import { AIProvider, SearchHistory, SearchResult, SearchParams, SearchStatus } from '../types';
 import { defaultProviders } from '../data/providers';
 
@@ -64,43 +65,67 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     setSearchStatus(SearchStatus.SEARCHING);
     
     try {
-      // In a real implementation, this would call out to the AI services
-      // For now, we'll simulate a response after a delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const tavilyProvider = providers.find(p => p.id === 'tavily');
       
-      // Mock result based on the example from the prompt
-      if (params.state.toLowerCase() === 'georgia' && params.county.toLowerCase() === 'forsyth') {
-        const mockResult: SearchResult = {
-          id: Date.now().toString(),
-          url: 'https://geo.forsythco.com/gisworkflow/rest/services/Public/Zoning_Districts/FeatureServer',
-          title: 'Forsyth County GIS - Zoning Districts',
-          description: 'Official zoning districts feature server for Forsyth County, Georgia',
-          provider: 'mock',
-          confidence: 0.95,
+      if (!tavilyProvider?.enabled || !tavilyProvider?.apiKey) {
+        throw new Error('Tavily API key not configured. Please add your API key in Settings.');
+      }
+
+      const client = createClient(tavilyProvider.apiKey);
+      
+      // Construct a search query that targets ArcGIS zoning district URLs
+      const searchQuery = `${params.county} County, ${params.state} ArcGIS zoning districts feature server URL site:*.gov OR site:*.com`;
+      
+      const response = await client.search({
+        query: searchQuery,
+        search_depth: 'advanced',
+        include_domains: ['arcgis.com', 'gis.com'],
+        include_answer: true,
+        max_results: 5
+      });
+
+      if (!response || !Array.isArray(response.results)) {
+        throw new Error('Invalid response from Tavily API');
+      }
+
+      // Transform Tavily results into our SearchResult format
+      const transformedResults: SearchResult[] = response.results
+        .filter(result => {
+          // Filter for URLs that look like feature servers
+          const url = result.url.toLowerCase();
+          return url.includes('featureserver') || url.includes('mapserver');
+        })
+        .map(result => ({
+          id: crypto.randomUUID(),
+          url: result.url,
+          title: result.title,
+          description: result.content,
+          provider: 'tavily',
+          confidence: result.score || 0.7,
           timestamp: new Date().toISOString(),
-          validated: true
-        };
-        setSearchResults([mockResult]);
-        
-        // Add to search history
+          validated: result.score > 0.8,
+          notes: response.answer
+        }));
+
+      setSearchResults(transformedResults);
+      
+      // Add to search history if we found results
+      if (transformedResults.length > 0) {
         const historyEntry: SearchHistory = {
-          id: Date.now().toString(),
+          id: crypto.randomUUID(),
           state: params.state,
           county: params.county,
           timestamp: new Date().toISOString(),
-          results: [mockResult]
+          results: transformedResults
         };
         setSearchHistory(prev => [historyEntry, ...prev]);
-        
-        setSearchStatus(SearchStatus.SUCCESS);
-      } else {
-        // Simulate no results found
-        setSearchResults([]);
-        setSearchStatus(SearchStatus.SUCCESS);
       }
+      
+      setSearchStatus(SearchStatus.SUCCESS);
     } catch (error) {
       console.error('Search error:', error);
       setSearchStatus(SearchStatus.ERROR);
+      setSearchResults([]);
     }
   };
 
